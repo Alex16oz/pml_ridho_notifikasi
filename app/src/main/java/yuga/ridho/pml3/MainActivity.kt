@@ -16,6 +16,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,12 @@ import com.google.firebase.messaging.ktx.messaging
 import yuga.ridho.pml3.ui.theme.Pml_ridho_notifikasiTheme
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        var title: MutableState<String> = mutableStateOf("")
+        var body: MutableState<String> = mutableStateOf("")
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +63,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MessageContent(modifier: Modifier = Modifier) {
     var text1 by remember { mutableStateOf("") }
-    var title by remember { mutableStateOf("") }
-    var body by remember { mutableStateOf("") }
+    val title by MainActivity.title
+    val body by MainActivity.body
     var text2 by remember { mutableStateOf("") }
 
     Firebase.messaging.getToken().addOnCompleteListener { task ->
@@ -86,13 +93,13 @@ fun MessageContent(modifier: Modifier = Modifier) {
         )
         TextField(
             value = title,
-            onValueChange = { title = it },
+            onValueChange = { MainActivity.title.value = it },
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             label = { Text("title") }
         )
         TextField(
             value = body,
-            onValueChange = { body = it },
+            onValueChange = { MainActivity.body.value = it },
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             label = { Text("Body") }
         )

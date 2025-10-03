@@ -22,6 +22,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // Check if message contains a notification payload.
         remoteMessage.notification?.let {
             Log.d(TAG, "Message Notification Body: ${it.body}")
+            MainActivity.title.value = it.title ?: ""
+            MainActivity.body.value = it.body ?: ""
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM
