@@ -1,6 +1,7 @@
 package yuga.ridho.pml3
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import yuga.ridho.pml3.ui.theme.Pml_ridho_notifikasiTheme
 
 class MainActivity : ComponentActivity() {
@@ -56,6 +59,18 @@ fun MessageContent(modifier: Modifier = Modifier) {
     var title by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
     var text2 by remember { mutableStateOf("") }
+
+    Firebase.messaging.getToken().addOnCompleteListener { task ->
+        if (!task.isSuccessful) {
+            Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+            return@addOnCompleteListener
+        }
+
+        // Get new FCM registration token
+        val token = task.result
+        text1 = token
+        Log.d("FCM", "FCM token: $token")
+    }
 
     Column(modifier = modifier.padding(16.dp)) {
         TextField(
