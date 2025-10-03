@@ -62,7 +62,7 @@ fun MessageContent(modifier: Modifier = Modifier) {
             value = text1,
             onValueChange = { text1 = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("") },
+            label = { Text("token") },
             maxLines = 5
         )
         Text(
