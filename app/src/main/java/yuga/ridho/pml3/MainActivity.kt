@@ -1,5 +1,6 @@
 package yuga.ridho.pml3
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -34,11 +35,15 @@ class MainActivity : ComponentActivity() {
     companion object {
         var title: MutableState<String> = mutableStateOf("")
         var body: MutableState<String> = mutableStateOf("")
+        var customData: MutableState<String> = mutableStateOf("")
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        handleIntent(intent)
+
         enableEdgeToEdge()
         setContent {
             Pml_ridho_notifikasiTheme {
@@ -58,6 +63,46 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val extras = intent?.extras ?: return
+
+        val notificationTitle = extras.getString("notification_title")
+        val notificationBody = extras.getString("notification_body")
+
+        if (notificationTitle != null) {
+            MainActivity.title.value = notificationTitle
+        }
+        if (notificationBody != null) {
+            MainActivity.body.value = notificationBody
+        }
+
+        // --- PERUBAHAN UTAMA ADA DI SINI ---
+        val dataMap = mutableMapOf<String, String>()
+        extras.keySet().forEach { key ->
+            // Filter untuk hanya mengambil data custom Anda (misalnya yang berawalan "promo")
+            if (key.startsWith("promo")) {
+                extras.getString(key)?.let { value ->
+                    dataMap[key] = value
+                }
+            }
+        }
+
+        if (dataMap.isNotEmpty()) {
+            // 1. Ambil semua key dan urutkan (misal: "promo 1", "promo 2")
+            val sortedKeys = dataMap.keys.sorted()
+
+            // 2. Ambil value berdasarkan urutan key, lalu gabungkan dengan baris baru
+            val formattedValues = sortedKeys.mapNotNull { dataMap[it] }.joinToString("\n")
+
+            MainActivity.customData.value = formattedValues
+        }
+    }
 }
 
 @Composable
@@ -65,15 +110,13 @@ fun MessageContent(modifier: Modifier = Modifier) {
     var text1 by remember { mutableStateOf("") }
     val title by MainActivity.title
     val body by MainActivity.body
-    var text2 by remember { mutableStateOf("") }
+    val text2 by MainActivity.customData
 
     Firebase.messaging.getToken().addOnCompleteListener { task ->
         if (!task.isSuccessful) {
             Log.w("FCM", "Fetching FCM registration token failed", task.exception)
             return@addOnCompleteListener
         }
-
-        // Get new FCM registration token
         val token = task.result
         text1 = token
         Log.d("FCM", "FCM token: $token")
@@ -109,10 +152,12 @@ fun MessageContent(modifier: Modifier = Modifier) {
         )
         TextField(
             value = text2,
-            onValueChange = { text2 = it },
+            onValueChange = { MainActivity.customData.value = it },
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             label = { Text("") },
-            maxLines = 5
+            // Menambah tinggi TextField agar bisa menampilkan beberapa baris
+            minLines = 3,
+            maxLines = 10
         )
     }
 }
